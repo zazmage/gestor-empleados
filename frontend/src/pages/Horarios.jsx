@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarIcon, LogOut, Menu, User } from "lucide-react"
+import { CalendarIcon, LogOut, Menu, User, TrainFrontTunnel } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { VistaListaCalendario } from "@/components/VistaListaCalendario"
@@ -25,22 +25,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-black text-white">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">          <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 overflow-hidden rounded-full">
-            <img
-              src="/placeholder.svg"
-              alt="Logo de la empresa"
-              width={40}
-              height={40}
-              className="object-cover"
-            />
+        {/* Dark header */}
+      </header>
+      <header className="sticky top-0 z-50 w-full border-b bg-black/90 backdrop-blur-sm">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative h-10 w-10 overflow-hidden rounded-full">
+              <TrainFrontTunnel className="absolute h-full w-full object-cover text-pink-500" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
+              HorariosPro
+            </span>
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
-            HorariosPro
-          </span>
-        </div>
           <div className="flex items-center gap-4">
             <Sheet>
               <SheetTrigger asChild>
@@ -48,22 +46,24 @@ export default function DashboardPage() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right">                <div className="grid gap-4 py-4">
-                <Link to="/dashboard/profile">
-                  <Button variant="ghost" className="w-full justify-start">
-                    <User className="mr-2 h-4 w-4" />
-                    Perfil
-                  </Button>
-                </Link>
-                <Link to="/">
-                  <Button variant="ghost" className="w-full justify-start">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Cerrar sesión
-                  </Button>
-                </Link>
-              </div>
+              <SheetContent side="right">
+                <div className="grid gap-4 py-4">
+                  <Link to="/dashboard/profile">
+                    <Button variant="ghost" className="w-full justify-start">
+                      <User className="mr-2 h-4 w-4" />
+                      Perfil
+                    </Button>
+                  </Link>
+                  <Link to="/">
+                    <Button variant="ghost" className="w-full justify-start">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Cerrar sesión
+                    </Button>
+                  </Link>
+                </div>
               </SheetContent>
-            </Sheet>            <div className="hidden md:flex md:items-center md:gap-4">
+            </Sheet>
+            <div className="hidden md:flex md:items-center md:gap-4">
               <Link to="/dashboard/profile">
                 <Button variant="ghost">
                   <User className="mr-2 h-4 w-4" />
@@ -100,12 +100,12 @@ export default function DashboardPage() {
           </div>
 
           <Tabs defaultValue="calendar" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="calendar">
+            <TabsList className="flex space-x-2 mb-6 bg-black bg-opacity-50 backdrop-blur-sm p-1 rounded-lg">
+              <TabsTrigger value="calendar" className="flex-1 text-center py-2 text-gray-400 hover:text-gray-200 data-[state=active]:text-white relative data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-4 data-[state=active]:before:right-4 data-[state=active]:before:h-1 data-[state=active]:before:bg-gradient-to-r data-[state=active]:before:from-pink-500 data-[state=active]:before:to-violet-500">
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 Vista Calendario
               </TabsTrigger>
-              <TabsTrigger value="list">
+              <TabsTrigger value="list" className="flex-1 text-center py-2 text-gray-400 hover:text-gray-200 data-[state=active]:text-white relative data-[state=active]:before:content-[''] data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-4 data-[state=active]:before:right-4 data-[state=active]:before:h-1 data-[state=active]:before:bg-gradient-to-r data-[state=active]:before:from-pink-500 data-[state=active]:before:to-violet-500">
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 Vista Lista
               </TabsTrigger>

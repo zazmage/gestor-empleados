@@ -40,7 +40,7 @@ export default function Registrarse() {
       // })
 
       navigate("/dashboard")
-    } catch (error) {
+    } catch {
       // toast({
       //   title: "Error al registrarse",
       //   description: "Ha ocurrido un error durante el registro. Intenta nuevamente.",
@@ -52,7 +52,7 @@ export default function Registrarse() {
   }
 
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
+    <div className="container flex h-screen w-screen bg-black bg-opacity-80 backdrop-blur-sm flex-col items-center justify-center p-4">
       <Link to="/" className="absolute left-4 top-4 md:left-8 md:top-8">
         <Button variant="ghost">← Volver</Button>
       </Link>
@@ -61,15 +61,16 @@ export default function Registrarse() {
           <h1 className="text-2xl font-semibold tracking-tight">Crear una cuenta</h1>
           <p className="text-sm text-muted-foreground">Ingresa tus datos para registrarte</p>
         </div>
-        <Card>
+        <Card className="bg-gray-900 bg-opacity-80 border border-gray-700 rounded-xl shadow-xl backdrop-blur-sm">
           <form onSubmit={handleSubmit}>
             <CardContent className="pt-6">
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Nombre completo</Label>
+                  <Label htmlFor="name" className="text-gray-300">Nombre completo</Label>
                   <Input
                     id="name"
                     type="text"
+                    className="bg-gray-800 bg-opacity-50 placeholder-gray-500 text-white border-gray-600 focus:border-pink-500 focus:ring-pink-500 focus:ring focus:ring-opacity-40"
                     placeholder="Juan Pérez"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -77,10 +78,11 @@ export default function Registrarse() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Correo electrónico</Label>
+                  <Label htmlFor="email" className="text-gray-300">Correo electrónico</Label>
                   <Input
                     id="email"
                     type="email"
+                    className="bg-gray-800 bg-opacity-50 placeholder-gray-500 text-white border-gray-600 focus:border-pink-500 focus:ring-pink-500 focus:ring focus:ring-opacity-40"
                     placeholder="nombre@ejemplo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -88,20 +90,22 @@ export default function Registrarse() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Contraseña</Label>
+                  <Label htmlFor="password" className="text-gray-300">Contraseña</Label>
                   <Input
                     id="password"
                     type="password"
+                    className="bg-gray-800 bg-opacity-50 placeholder-gray-500 text-white border-gray-600 focus:border-pink-500 focus:ring-pink-500 focus:ring focus:ring-opacity-40"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="confirm-password">Confirmar contraseña</Label>
+                  <Label htmlFor="confirm-password" className="text-gray-300">Confirmar contraseña</Label>
                   <Input
                     id="confirm-password"
                     type="password"
+                    className="bg-gray-800 bg-opacity-50 placeholder-gray-500 text-white border-gray-600 focus:border-pink-500 focus:ring-pink-500 focus:ring focus:ring-opacity-40"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -110,12 +114,12 @@ export default function Registrarse() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col">
-              <Button className="w-full" type="submit" disabled={isLoading}>
+              <Button className="w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white hover:opacity-90 shadow-md hover:shadow-pink-500/50 transition-transform" type="submit" disabled={isLoading}>
                 {isLoading ? "Registrando..." : "Registrarse"}
               </Button>
-              <p className="mt-4 text-center text-sm text-muted-foreground">
+              <p className="mt-4 text-center text-sm text-gray-400">
                 ¿Ya tienes una cuenta?{" "}
-                <Link to="/iniciar-sesion" className="underline underline-offset-4 hover:text-primary">
+                <Link to="/iniciar-sesion" className="underline underline-offset-4 hover:text-pink-400">
                   Iniciar sesión
                 </Link>
               </p>

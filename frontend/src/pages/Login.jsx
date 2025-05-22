@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { login } from "@/lib/auth"
 // import { useToast } from "@/components/ui/use-toast"
 
-export default function IniciarSesion() {
-  const [email, setEmail] = useState("")
+export default function Login() {
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
@@ -18,18 +19,19 @@ export default function IniciarSesion() {
     setIsLoading(true)
 
     try {
-      // Aquí iría la lógica de autenticación real
-      // Por ahora simulamos un inicio de sesión exitoso
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Usar la función de login del servicio de autenticación
+      await login(username, password);
 
       // toast({
       //   title: "Inicio de sesión exitoso",
       //   description: "Redirigiendo al dashboard...",
       // })
 
-      navigate("/dashboard")
+      alert("Inicio de sesión exitoso");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error de inicio de sesión:", error)
+      alert(`Error de inicio de sesión: ${error.message}`);
       // toast({
       //   title: "Error al iniciar sesión",
       //   description: "Por favor verifica tus credenciales e intenta nuevamente.",
@@ -55,14 +57,14 @@ export default function IniciarSesion() {
             <CardContent className="pt-6">
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email" className="text-gray-300">Correo electrónico</Label>
+                  <Label htmlFor="username" className="text-gray-300">Nombre de usuario</Label>
                   <Input
-                    id="email"
-                    type="email"
+                    id="username"
+                    type="text"
                     className="bg-gray-800 bg-opacity-50 placeholder-gray-500 text-white border-gray-600 focus:border-pink-500 focus:ring-pink-500 focus:ring focus:ring-opacity-40"
-                    placeholder="nombre@ejemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Ingresa tu nombre de usuario"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </div>

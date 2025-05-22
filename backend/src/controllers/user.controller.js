@@ -4,7 +4,7 @@ const { generateToken } = require('../middleware/auth.middleware');
 // Register a new user
 const registerUser = async (req, res) => {
   try {
-    const { username, email, password, name, role } = req.body;
+    const { username, email, password, name, role, dne } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -17,25 +17,35 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // Check if DNE is already in use (if provided)
+    if (dne) {
+      const existingDNE = await User.findOne({ dne });
+      if (existingDNE) {
+        return res.status(400).json({
+          message: 'Employee number (DNE) already exists'
+        });
+      }
+    }
+
     // Create new user
     const user = new User({
       username,
       email,
       password, // will be hashed by pre-save hook
       name,
+      dne,
       role
     });
 
-    await user.save();
-
-    res.status(201).json({
+    await user.save(); res.status(201).json({
       message: 'User registered successfully',
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
+        dne: user.dne
       }
     });
   } catch (error) {
@@ -69,9 +79,7 @@ const loginUser = async (req, res) => {
     }
 
     // Generate token
-    const token = generateToken(user);
-
-    res.status(200).json({
+    const token = generateToken(user); res.status(200).json({
       message: 'Login successful',
       token,
       user: {
@@ -79,7 +87,8 @@ const loginUser = async (req, res) => {
         username: user.username,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
+        dne: user.dne
       }
     });
   } catch (error) {
@@ -125,7 +134,7 @@ const getAllUsers = async (req, res) => {
 // Update user
 const updateUser = async (req, res) => {
   try {
-    const { name, email, role } = req.body;
+    const { name, email, role, dne } = req.body;
     const userId = req.params.id;
 
     // Find user
@@ -134,9 +143,20 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Check if DNE is being updated and is not already taken
+    if (dne && dne !== user.dne) {
+      const existingDNE = await User.findOne({ dne, _id: { $ne: userId } });
+      if (existingDNE) {
+        return res.status(400).json({
+          message: 'Employee number (DNE) already exists'
+        });
+      }
+    }
+
     // Update fields
     if (name) user.name = name;
     if (email) user.email = email;
+    if (dne) user.dne = dne;
     if (role && req.user.role === 'admin') user.role = role;
 
     await user.save();
@@ -148,7 +168,8 @@ const updateUser = async (req, res) => {
         username: user.username,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
+        dne: user.dne
       }
     });
   } catch (error) {

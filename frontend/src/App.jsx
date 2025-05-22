@@ -1,8 +1,9 @@
 import './App.css'
 import { BrowserRouter, Route, Routes } from 'react-router'
-import IniciarSesion from './pages/IniciarSesion'
-import Registrarse from './pages/Registrarse'
-import Horarios from './pages/Horarios'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Dashboard from './pages/Dashboard'
+import Profile from './pages/Profile'
 
 function App() {
 
@@ -11,11 +12,13 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Públicas */}
-        <Route path="/iniciar-sesion" element={<IniciarSesion />} />
-        <Route path="/registrarse" element={<Registrarse />} />
+        <Route path="/iniciar-sesion" element={<Login />} />
+        <Route path="/registrarse" element={<Register />} />
 
         {/* Privadas */}
-        <Route path="/" element={<Horarios />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+
 
       </Routes>
     </BrowserRouter>

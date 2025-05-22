@@ -5,12 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarIcon, LogOut, Menu, User, TrainFrontTunnel } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { VistaListaCalendario } from "@/components/VistaListaCalendario"
-import { CalendarioMensual } from "@/components/CalendarioMensual"
+import { CalendarListView } from "@/components/CalendarListView"
+import { MonthlyCalendar } from "@/components/MonthlyCalendar"
 
 
-export default function DashboardPage() {
+export default function Dashboard() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [currentUser, setCurrentUser] = useState(() => {
+    // Intentar obtener el usuario del localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    return null;
+  });
 
   const handlePreviousMonth = () => {
     const prevMonth = new Date(currentMonth)
@@ -22,6 +34,12 @@ export default function DashboardPage() {
     const nextMonth = new Date(currentMonth)
     nextMonth.setMonth(nextMonth.getMonth() + 1)
     setCurrentMonth(nextMonth)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/iniciar-sesion';
   }
 
   return (
@@ -48,7 +66,7 @@ export default function DashboardPage() {
               </SheetTrigger>
               <SheetContent side="right">
                 <div className="grid gap-4 py-4">
-                  <Link to="/dashboard/profile">
+                  <Link to="/profile">
                     <Button variant="ghost" className="w-full justify-start">
                       <User className="mr-2 h-4 w-4" />
                       Perfil
@@ -64,7 +82,7 @@ export default function DashboardPage() {
               </SheetContent>
             </Sheet>
             <div className="hidden md:flex md:items-center md:gap-4">
-              <Link to="/dashboard/profile">
+              <Link to="/profile">
                 <Button variant="ghost">
                   <User className="mr-2 h-4 w-4" />
                   Perfil
@@ -119,7 +137,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <CalendarioMensual month={currentMonth} />
+                  <MonthlyCalendar month={currentMonth} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -132,7 +150,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <VistaListaCalendario month={currentMonth} />
+                  <CalendarListView month={currentMonth} />
                 </CardContent>
               </Card>
             </TabsContent>

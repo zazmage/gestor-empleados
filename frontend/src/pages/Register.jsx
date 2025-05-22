@@ -4,21 +4,24 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { register } from "@/lib/auth"
 // import { useToast } from "@/components/ui/use-toast"
 
-export default function Registrarse() {
+export default function Register() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
+  const [dne, setDne] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   // const { toast } = useToast()
-
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (password !== confirmPassword) {
+      alert("Las contraseñas no coinciden");
       // toast({
       //   title: "Las contraseñas no coinciden",
       //   description: "Por favor verifica que ambas contraseñas sean iguales.",
@@ -30,20 +33,29 @@ export default function Registrarse() {
     setIsLoading(true)
 
     try {
-      // Aquí iría la lógica de registro real
-      // Por ahora simulamos un registro exitoso
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Registrar usuario con la API
+      await register({
+        name,
+        email,
+        username,
+        password,
+        dne,
+        role: 'employee' // Por defecto registramos como empleado
+      });
 
       // toast({
       //   title: "Registro exitoso",
       //   description: "Tu cuenta ha sido creada correctamente.",
       // })
 
-      navigate("/dashboard")
-    } catch {
+      alert("Registro exitoso: Tu cuenta ha sido creada correctamente.");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error al registrarse:", error);
+      alert(`Error al registrarse: ${error.message}`);
       // toast({
       //   title: "Error al registrarse",
-      //   description: "Ha ocurrido un error durante el registro. Intenta nuevamente.",
+      //   description: error.message || "Ha ocurrido un error durante el registro. Intenta nuevamente.",
       //   variant: "destructive",
       // })
     } finally {
@@ -74,6 +86,30 @@ export default function Registrarse() {
                     placeholder="Juan Pérez"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="username" className="text-gray-300">Nombre de usuario</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    className="bg-gray-800 bg-opacity-50 placeholder-gray-500 text-white border-gray-600 focus:border-pink-500 focus:ring-pink-500 focus:ring focus:ring-opacity-40"
+                    placeholder="juanperez"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="dne" className="text-gray-300">Número de empleado (DNE)</Label>
+                  <Input
+                    id="dne"
+                    type="text"
+                    className="bg-gray-800 bg-opacity-50 placeholder-gray-500 text-white border-gray-600 focus:border-pink-500 focus:ring-pink-500 focus:ring focus:ring-opacity-40"
+                    placeholder="EMP123456"
+                    value={dne}
+                    onChange={(e) => setDne(e.target.value)}
                     required
                   />
                 </div>

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export function TurnoForm({ initialData, onSave, onCancel }) {
+export function ShiftForm({ initialData, onSave, onCancel }) {
   const [title, setTitle] = useState(initialData?.title || "")
   const [start, setStart] = useState(initialData?.start || "09:00")
   const [end, setEnd] = useState(initialData?.end || "17:00")

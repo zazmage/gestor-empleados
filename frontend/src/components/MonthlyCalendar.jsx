@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { Clock, Users, Edit, Trash2, Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-// import { useToast } from "@/components/ui/use-toast"
-import { TurnoForm } from "./TurnoForm"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { Clock, Users, Plus, Edit, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+// import { useToast } from "@/components/ui/use-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { ShiftForm } from "./ShiftForm"
+
 
 // Datos de ejemplo para los horarios
 const initialSchedules = {
@@ -68,7 +71,9 @@ const initialSchedules = {
   },
 }
 
-export function VistaListaCalendario({ month }) {
+
+
+export function MonthlyCalendar({ month }) {
   const [schedules, setSchedules] = useState(initialSchedules)
   const [selectedDate, setSelectedDate] = useState(null)
   const [isAddingTurno, setIsAddingTurno] = useState(false)
@@ -77,15 +82,42 @@ export function VistaListaCalendario({ month }) {
   const [dialogOpen, setDialogOpen] = useState(false)
   // const { toast } = useToast()
 
-  // Obtener el número de días en el mes
-  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
+  // Obtener el primer día del mes
+  const firstDayOfMonth = new Date(month.getFullYear(), month.getMonth(), 1)
+
+  // Obtener el último día del mes
+  const lastDayOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0)
+
+  // Obtener el día de la semana del primer día (0 = Domingo, 1 = Lunes, etc.)
+  const firstDayOfWeek = firstDayOfMonth.getDay()
+
+  // Ajustar para que la semana comience en lunes (0 = Lunes, 6 = Domingo)
+  const adjustedFirstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
+
+  // Número total de días en el mes
+  const daysInMonth = lastDayOfMonth.getDate()
 
   // Crear un array con los días del mes
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
+  // Nombres de los días de la semana
+  const weekDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+
   // Formatear fecha para buscar en el objeto de horarios
   const formatDateKey = (day) => {
     return `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+  }
+
+  // Verificar si un día tiene horarios
+  const hasSchedule = (day) => {
+    const dateKey = formatDateKey(day)
+    return schedules[dateKey] !== undefined
+  }
+
+  // Obtener horario para un día específico
+  const getScheduleForDay = (day) => {
+    const dateKey = formatDateKey(day)
+    return schedules[dateKey] || null
   }
 
   // Obtener color según el tipo de turno
@@ -107,6 +139,14 @@ export function VistaListaCalendario({ month }) {
     const dateKey = formatDateKey(day)
     setSelectedDate(dateKey)
     setDialogOpen(true)
+  }
+
+  // Verificar si es el día actual
+  const isToday = (day) => {
+    const today = new Date()
+    return (
+      today.getDate() === day && today.getMonth() === month.getMonth() && today.getFullYear() === month.getFullYear()
+    )
   }
 
   // Añadir o actualizar un turno
@@ -162,108 +202,62 @@ export function VistaListaCalendario({ month }) {
     return date.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
   }
 
-  // Verificar si es el día actual
-  const isToday = (day) => {
-    const today = new Date()
-    return (
-      today.getDate() === day && today.getMonth() === month.getMonth() && today.getFullYear() === month.getFullYear()
-    )
-  }
-
   return (
-    <div className="space-y-4">
-      {days.map((day) => {
-        const dateKey = formatDateKey(day)
-        const schedule = schedules[dateKey]
-        const today = isToday(day)
-        const date = new Date(dateKey)
-
-        return (
-          <div
-            key={day}
-            className={cn(
-              "flex items-center p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer",
-              today ? "border-pink-500 dark:border-pink-400" : "border-muted",
-              schedule
-                ? "bg-gradient-to-r from-pink-50/50 to-violet-50/50 dark:from-pink-950/20 dark:to-violet-950/20"
-                : "",
-            )}
-            onClick={() => handleDayClick(day)}
-          >
-            <div
-              className={cn(
-                "w-16 h-16 rounded-full flex items-center justify-center mr-4",
-                schedule
-                  ? schedule.type === "morning"
-                    ? "bg-gradient-to-br from-pink-200 to-pink-100 dark:from-pink-900 dark:to-pink-800"
-                    : schedule.type === "afternoon"
-                      ? "bg-gradient-to-br from-violet-200 to-violet-100 dark:from-violet-900 dark:to-violet-800"
-                      : "bg-gradient-to-br from-indigo-200 to-indigo-100 dark:from-indigo-900 dark:to-indigo-800"
-                  : "bg-gradient-to-br from-gray-200 to-gray-100 dark:from-gray-800 dark:to-gray-700",
-              )}
-            >
-              <span className={cn("text-lg font-bold", today ? "text-pink-600 dark:text-pink-400" : "")}>{day}</span>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium flex items-center">
-                {date.toLocaleDateString("es-ES", { weekday: "long" })}
-                {today && (
-                  <span className="ml-2 text-xs bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300 px-2 py-0.5 rounded-full">
-                    Hoy
-                  </span>
-                )}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {date.toLocaleDateString("es-ES", { day: "numeric", month: "long" })}
-              </p>
-              {schedule ? (
-                <div
-                  className={cn(
-                    "mt-1 text-sm font-medium px-2 py-0.5 rounded inline-flex items-center",
-                    getScheduleColor(schedule.type),
-                  )}
-                >
-                  <Clock className="h-3 w-3 mr-1" />
-                  {schedule.title}: {schedule.start} - {schedule.end}
-                </div>
-              ) : (
-                <p className="mt-1 text-sm text-muted-foreground italic">Sin turno asignado</p>
-              )}
-            </div>
-            <div>
-              {schedule ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setSelectedDate(dateKey)
-                    setIsEditingTurno(true)
-                    setDialogOpen(true)
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setSelectedDate(dateKey)
-                    setIsAddingTurno(true)
-                    setDialogOpen(true)
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+    <div className="w-full">
+      {/* Cabecera con los días de la semana */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {weekDays.map((day) => (
+          <div key={day} className="text-center font-medium py-2 text-muted-foreground">
+            {day}
           </div>
-        )
-      })}
+        ))}
+      </div>
+
+      {/* Calendario */}
+      <div className="grid grid-cols-7 gap-2">
+        {/* Espacios vacíos para ajustar el primer día del mes */}
+        {Array.from({ length: adjustedFirstDayOfWeek }, (_, i) => (
+          <div key={`empty-${i}`} className="aspect-square p-1"></div>
+        ))}
+
+        {/* Días del mes */}
+        {days.map((day) => {
+          const dateKey = formatDateKey(day)
+          const schedule = getScheduleForDay(day)
+          const hasScheduleForDay = schedule !== null
+          const today = isToday(day)
+
+          return (
+            <div
+              key={day}
+              className={cn(
+                "aspect-square border rounded-md p-1 cursor-pointer transition-all hover:shadow-md",
+                today ? "border-pink-500 dark:border-pink-400 ring-2 ring-pink-200 dark:ring-pink-900" : "border-muted",
+                hasScheduleForDay
+                  ? "bg-gradient-to-br from-pink-50/50 to-violet-50/50 dark:from-pink-950/20 dark:to-violet-950/20"
+                  : "hover:bg-muted/50",
+              )}
+              onClick={() => handleDayClick(day)}
+            >
+              <div className="h-full flex flex-col">
+                <div className={cn("text-right font-medium", today ? "text-pink-600 dark:text-pink-400" : "")}>
+                  {day}
+                </div>
+                {hasScheduleForDay && schedule && (
+                  <div className="flex-1 flex flex-col items-center justify-end gap-1 mt-1">
+                    <Badge
+                      variant="outline"
+                      className={cn("text-xs w-full justify-center truncate px-1", getScheduleColor(schedule.type))}
+                    >
+                      {schedule.title}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
 
       {/* Diálogo para ver/editar/añadir turno */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -275,7 +269,7 @@ export function VistaListaCalendario({ month }) {
           {selectedDate && (
             <>
               {isAddingTurno || isEditingTurno ? (
-                <TurnoForm
+                <ShiftForm
                   initialData={isEditingTurno ? schedules[selectedDate] : undefined}
                   onSave={handleSaveTurno}
                   onCancel={() => {

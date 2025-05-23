@@ -28,7 +28,7 @@ export default function Login() {
       // })
 
       alert("Inicio de sesión exitoso");
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       console.error("Error de inicio de sesión:", error)
       alert(`Error de inicio de sesión: ${error.message}`);

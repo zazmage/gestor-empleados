@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { Clock, Users, Plus, Edit, Trash2 } from "lucide-react"
@@ -17,70 +17,33 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { ShiftForm } from "./ShiftForm"
-
-
-// Datos de ejemplo para los horarios
-const initialSchedules = {
-  "2025-05-01": {
-    id: "1",
-    start: "09:00",
-    end: "17:00",
-    title: "Turno mañana",
-    type: "morning",
-    employees: ["Ana García", "Carlos López"],
-  },
-  "2025-05-05": {
-    id: "2",
-    start: "08:00",
-    end: "16:00",
-    title: "Turno mañana",
-    type: "morning",
-    employees: ["María Rodríguez"],
-  },
-  "2025-05-10": {
-    id: "3",
-    start: "14:00",
-    end: "22:00",
-    title: "Turno tarde",
-    type: "afternoon",
-    employees: ["Juan Pérez", "Laura Martínez"],
-  },
-  "2025-05-15": {
-    id: "4",
-    start: "09:00",
-    end: "17:00",
-    title: "Turno mañana",
-    type: "morning",
-    employees: ["Pedro Sánchez", "Sofía Fernández"],
-  },
-  "2025-05-20": {
-    id: "5",
-    start: "22:00",
-    end: "06:00",
-    title: "Turno noche",
-    type: "night",
-    employees: ["Diego Morales"],
-  },
-  "2025-05-25": {
-    id: "6",
-    start: "14:00",
-    end: "22:00",
-    title: "Turno tarde",
-    type: "afternoon",
-    employees: ["Elena Torres", "Pablo Ruiz"],
-  },
-}
-
-
+import { getAllShifts, createShift, updateShift, deleteShift, formatShiftsForCalendar } from "@/lib/shift"
+import { getCurrentUser } from "@/lib/auth"
 
 export function MonthlyCalendar({ month }) {
-  const [schedules, setSchedules] = useState(initialSchedules)
+  const [schedules, setSchedules] = useState({})
   const [selectedDate, setSelectedDate] = useState(null)
   const [isAddingTurno, setIsAddingTurno] = useState(false)
   const [isEditingTurno, setIsEditingTurno] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   // const { toast } = useToast()
+
+  // Load shifts when month changes
+  useEffect(() => {
+    async function loadShifts() {
+      const shifts = await getAllShifts({
+        startDate: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-01`,
+        endDate: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-${new Date(
+          month.getFullYear(),
+          month.getMonth() + 1,
+          0,
+        ).getDate()}`,
+      })
+      setSchedules(formatShiftsForCalendar(shifts))
+    }
+    loadShifts()
+  }, [month])
 
   // Obtener el primer día del mes
   const firstDayOfMonth = new Date(month.getFullYear(), month.getMonth(), 1)
@@ -106,12 +69,6 @@ export function MonthlyCalendar({ month }) {
   // Formatear fecha para buscar en el objeto de horarios
   const formatDateKey = (day) => {
     return `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-  }
-
-  // Verificar si un día tiene horarios
-  const hasSchedule = (day) => {
-    const dateKey = formatDateKey(day)
-    return schedules[dateKey] !== undefined
   }
 
   // Obtener horario para un día específico
@@ -150,48 +107,51 @@ export function MonthlyCalendar({ month }) {
   }
 
   // Añadir o actualizar un turno
-  const handleSaveTurno = (turno) => {
+  const handleSaveTurno = async (turno) => {
     if (!selectedDate) return
-
-    const newTurno = {
-      ...turno,
-      id: schedules[selectedDate]?.id || Date.now().toString(),
+    if (isEditingTurno) {
+      await updateShift(schedules[selectedDate].id, {
+        start: `${selectedDate}T${turno.start}`,
+        end: `${selectedDate}T${turno.end}`,
+        title: turno.title,
+        type: turno.type,
+      })
+    } else {
+      const user = getCurrentUser()
+      await createShift({
+        start: `${selectedDate}T${turno.start}`,
+        end: `${selectedDate}T${turno.end}`,
+        title: turno.title,
+        type: turno.type,
+        employee: user.id,
+      })
     }
-
-    setSchedules((prev) => ({
-      ...prev,
-      [selectedDate]: newTurno,
-    }))
-
-    // toast({
-    //   title: isEditingTurno ? "Turno actualizado" : "Turno añadido",
-    //   description: `Se ha ${isEditingTurno ? "actualizado" : "añadido"} el turno para el día ${new Date(
-    //     selectedDate,
-    //   ).getDate()} de ${month.toLocaleDateString("es-ES", { month: "long" })}.`,
-    // })
-
+    const updated = await getAllShifts({
+      startDate: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-01`,
+      endDate: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-${new Date(
+        month.getFullYear(),
+        month.getMonth() + 1,
+        0,
+      ).getDate()}`,
+    })
+    setSchedules(formatShiftsForCalendar(updated))
     setIsAddingTurno(false)
     setIsEditingTurno(false)
   }
 
   // Eliminar un turno
-  const handleDeleteTurno = () => {
+  const handleDeleteTurno = async () => {
     if (!selectedDate) return
-
-    setSchedules((prev) => {
-      const newSchedules = { ...prev }
-      delete newSchedules[selectedDate]
-      return newSchedules
+    await deleteShift(schedules[selectedDate].id)
+    const updated = await getAllShifts({
+      startDate: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-01`,
+      endDate: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}-${new Date(
+        month.getFullYear(),
+        month.getMonth() + 1,
+        0,
+      ).getDate()}`,
     })
-
-    // toast({
-    //   title: "Turno eliminado",
-    //   description: `Se ha eliminado el turno para el día ${new Date(selectedDate).getDate()} de ${month.toLocaleDateString(
-    //     "es-ES",
-    //     { month: "long" },
-    //   )}.`,
-    // })
-
+    setSchedules(formatShiftsForCalendar(updated))
     setIsDeleteDialogOpen(false)
     setDialogOpen(false)
   }
@@ -222,7 +182,6 @@ export function MonthlyCalendar({ month }) {
 
         {/* Días del mes */}
         {days.map((day) => {
-          const dateKey = formatDateKey(day)
           const schedule = getScheduleForDay(day)
           const hasScheduleForDay = schedule !== null
           const today = isToday(day)
@@ -263,7 +222,12 @@ export function MonthlyCalendar({ month }) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl">{selectedDate && formatDisplayDate(selectedDate)}</DialogTitle>
+            <DialogTitle className="text-xl">{selectedDate && formatDisplayDate(selectedDate)}
+              <DialogDescription className="text-sm text-muted-foreground">
+                Gestión de turnos
+              </DialogDescription>
+
+            </DialogTitle>
           </DialogHeader>
 
           {selectedDate && (
@@ -315,15 +279,13 @@ export function MonthlyCalendar({ month }) {
                       <div className="flex gap-2 mt-4">
                         <Button
                           variant="outline"
-                          className="flex-1"
-                          onClick={() => {
-                            setIsEditingTurno(true)
-                          }}
+                          className="flex-1 text-white"
+                          onClick={() => setIsEditingTurno(true)}
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </Button>
-                        <Button variant="destructive" className="flex-1" onClick={() => setIsDeleteDialogOpen(true)}>
+                        <Button variant="destructive" className="flex-1 text-white" onClick={() => setIsDeleteDialogOpen(true)}>
                           <Trash2 className="h-4 w-4 mr-2" />
                           Eliminar
                         </Button>
@@ -332,7 +294,7 @@ export function MonthlyCalendar({ month }) {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <p className="text-muted-foreground mb-4">No hay turno asignado para este día.</p>
-                      <Button onClick={() => setIsAddingTurno(true)}>
+                      <Button className="text-white" onClick={() => setIsAddingTurno(true)}>
                         <Plus className="h-4 w-4 mr-2" />
                         Añadir turno
                       </Button>
@@ -357,7 +319,7 @@ export function MonthlyCalendar({ month }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteTurno} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDeleteTurno} className="bg-destructive text-white">
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

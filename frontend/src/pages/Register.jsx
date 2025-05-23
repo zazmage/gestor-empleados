@@ -49,7 +49,7 @@ export default function Register() {
       // })
 
       alert("Registro exitoso: Tu cuenta ha sido creada correctamente.");
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       console.error("Error al registrarse:", error);
       alert(`Error al registrarse: ${error.message}`);

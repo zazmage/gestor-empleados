@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Clock, Users, Edit, Trash2, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -15,6 +15,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { getAllShifts, createShift, updateShift, deleteShift, formatShiftsForCalendar } from "@/lib/shift"
+import { getCurrentUser } from "@/lib/auth"
+import { DialogDescription } from "@radix-ui/react-dialog"
 
 // Datos de ejemplo para los horarios
 const initialSchedules = {
@@ -69,7 +72,7 @@ const initialSchedules = {
 }
 
 export function CalendarListView({ month }) {
-  const [schedules, setSchedules] = useState(initialSchedules)
+  const [schedules, setSchedules] = useState({})
   const [selectedDate, setSelectedDate] = useState(null)
   const [isAddingShift, setIsAddingShift] = useState(false)
   const [isEditingShift, setIsEditingShift] = useState(false)
@@ -110,51 +113,36 @@ export function CalendarListView({ month }) {
   }
 
   // Añadir o actualizar un turno
-  const handleSaveShift = (shift) => {
-    if (!selectedDate) return
-
-    const newShift = {
-      ...shift,
-      id: schedules[selectedDate]?.id || Date.now().toString(),
+  const handleSaveShift = async (shift) => {
+    const data = { ...shift, dateKey: selectedDate }
+    if (isEditingShift) {
+      await updateShift(schedules[selectedDate].id, { start: shift.start, end: shift.end, title: shift.title, type: shift.type })
+    } else {
+      await createShift({ start: `${selectedDate}T${shift.start}`, end: `${selectedDate}T${shift.end}`, title: shift.title, type: shift.type, employee: getCurrentUser().id })
     }
-
-    setSchedules((prev) => ({
-      ...prev,
-      [selectedDate]: newShift,
-    }))
-
-    // toast({
-    //   title: isEditingShift ? "Turno actualizado" : "Turno añadido",
-    //   description: `Se ha ${isEditingShift ? "actualizado" : "añadido"} el turno para el día ${new Date(
-    //     selectedDate,
-    //   ).getDate()} de ${month.toLocaleDateString("es-ES", { month: "long" })}.`,
-    // })
-
+    const updated = await getAllShifts()
+    setSchedules(formatShiftsForCalendar(updated))
     setIsAddingShift(false)
     setIsEditingShift(false)
   }
 
   // Eliminar un turno
-  const handleDeleteShift = () => {
-    if (!selectedDate) return
-
-    setSchedules((prev) => {
-      const newSchedules = { ...prev }
-      delete newSchedules[selectedDate]
-      return newSchedules
-    })
-
-    // toast({
-    //   title: "Turno eliminado",
-    //   description: `Se ha eliminado el turno para el día ${new Date(selectedDate).getDate()} de ${month.toLocaleDateString(
-    //     "es-ES",
-    //     { month: "long" },
-    //   )}.`,
-    // })
-
+  const handleDeleteShift = async () => {
+    await deleteShift(schedules[selectedDate].id)
+    const updated = await getAllShifts()
+    setSchedules(formatShiftsForCalendar(updated))
     setIsDeleteDialogOpen(false)
     setDialogOpen(false)
   }
+
+  // Cargar turnos de la API al montar el componente
+  useEffect(() => {
+    async function loadShifts() {
+      const shifts = await getAllShifts({ startDate: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}-01`, endDate: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}-${new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()}` })
+      setSchedules(formatShiftsForCalendar(shifts))
+    }
+    loadShifts()
+  }, [month])
 
   // Formatear fecha para mostrar
   const formatDisplayDate = (dateKey) => {
@@ -268,7 +256,11 @@ export function CalendarListView({ month }) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl">{selectedDate && formatDisplayDate(selectedDate)}</DialogTitle>
+            <DialogTitle className="text-xl">{selectedDate && formatDisplayDate(selectedDate)}
+              <DialogDescription className="text-sm text-muted-foreground">
+                Gestión de turnos
+              </DialogDescription>
+            </DialogTitle>
           </DialogHeader>
 
           {selectedDate && (

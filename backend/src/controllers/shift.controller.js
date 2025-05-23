@@ -3,6 +3,7 @@ const User = require('../models/user.model');
 
 // Create a new shift
 const createShift = async (req, res) => {
+  console.log("\n\n\nPeticion recibida desde el backend\n\n\n")
   try {
     const { start, end, title, type, employee } = req.body;
 

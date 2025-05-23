@@ -245,8 +245,8 @@ export default function Profile() {
       </Card>
 
       <div className="flex gap-4 justify-between">
-        <Button onClick={() => navigate("/dashboard")} variant="outline">
-          Volver al Dashboard
+        <Button onClick={() => navigate("/")} variant="outline">
+          Volver a la página principal
         </Button>
         <Button onClick={handleLogout} variant="destructive">
           Cerrar sesión

@@ -25,15 +25,9 @@ const userSchema = new mongoose.Schema({
   },
   dne: {
     type: String,
-    required: function () { return this.role === 'employee'; }, // Solo requerido para empleados
+    required: true,
     unique: true,
-    sparse: true, // Permite que sea null/undefined para admin
     trim: true
-  },
-  role: {
-    type: String,
-    enum: ['admin', 'employee'],
-    default: 'employee'
   },
   isActive: {
     type: Boolean,

@@ -4,7 +4,7 @@ const { generateToken } = require('../middleware/auth.middleware');
 // Register a new user
 const registerUser = async (req, res) => {
   try {
-    const { username, email, password, name, role, dne } = req.body;
+    const { username, email, password, name, dne } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -33,18 +33,17 @@ const registerUser = async (req, res) => {
       email,
       password, // will be hashed by pre-save hook
       name,
-      dne,
-      role
+      dne
     });
 
-    await user.save(); res.status(201).json({
+    await user.save();
+    res.status(201).json({
       message: 'User registered successfully',
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
         name: user.name,
-        role: user.role,
         dne: user.dne
       }
     });
@@ -87,7 +86,6 @@ const loginUser = async (req, res) => {
         username: user.username,
         email: user.email,
         name: user.name,
-        role: user.role,
         dne: user.dne
       }
     });
@@ -134,7 +132,7 @@ const getAllUsers = async (req, res) => {
 // Update user
 const updateUser = async (req, res) => {
   try {
-    const { name, email, role, dne } = req.body;
+    const { name, email, dne } = req.body;
     const userId = req.params.id;
 
     // Find user
@@ -157,7 +155,6 @@ const updateUser = async (req, res) => {
     if (name) user.name = name;
     if (email) user.email = email;
     if (dne) user.dne = dne;
-    if (role && req.user.role === 'admin') user.role = role;
 
     await user.save();
 
@@ -168,7 +165,6 @@ const updateUser = async (req, res) => {
         username: user.username,
         email: user.email,
         name: user.name,
-        role: user.role,
         dne: user.dne
       }
     });
@@ -219,16 +215,6 @@ const deactivateUser = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Prevent deactivating last admin
-    if (user.role === 'admin') {
-      const adminCount = await User.countDocuments({ role: 'admin', isActive: true });
-      if (adminCount <= 1) {
-        return res.status(400).json({
-          message: 'Cannot deactivate the last admin user'
-        });
-      }
     }
 
     user.isActive = false;

@@ -9,8 +9,7 @@ const generateToken = (user) => {
   return jwt.sign(
     {
       id: user._id,
-      username: user.username,
-      role: user.role
+      username: user.username
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
@@ -35,20 +34,11 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-// Admin role check middleware
-const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
-  }
-};
-
 // Verify token for specific user or admin
 const authenticateUser = (req, res, next) => {
-  const userId = req.params.id || req.body.employee;
+  const userId = req.params.id || req.user.id;
 
-  if (req.user.role === 'admin' || req.user.id === userId) {
+  if (req.user.id === userId) {
     next();
   } else {
     return res.status(403).json({ message: 'Access denied. Not authorized for this operation.' });
@@ -58,6 +48,5 @@ const authenticateUser = (req, res, next) => {
 module.exports = {
   generateToken,
   authenticateToken,
-  isAdmin,
   authenticateUser
 };
